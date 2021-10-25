@@ -99,7 +99,8 @@ svg {
             .selectAll("g")
             .data(d => d[1])
             .join("g")
-                .attr("transform", d => `translate(${d.x0},${d.y0})`);
+                .attr("transform", d => `translate(${d.x0},${d.y0})`)
+                .attr("class", d => "height_" + d.height);
 
             node.append("title")
                 .text(d => `${d.ancestors().reverse().map(d => d.data.name).join("/")}\n${format(d.value)}`);
@@ -108,7 +109,8 @@ svg {
                 .attr("id", d => (d.nodeUid = uid("node")).id)
                 .attr("fill", d => color(d.height))
                 .attr("width", d => d.x1 - d.x0)
-                .attr("height", d => d.y1 - d.y0);
+                .attr("height", d => d.y1 - d.y0)
+                .style("opacity", function(d){return d.height < 2 ? 0.2 : 1});
 
             node.append("clipPath")
                 .attr("id", d => (d.clipUid = uid("clip")).id)
@@ -117,6 +119,8 @@ svg {
 
             node.append("text")
                 .attr("clip-path", d => d.clipUid)
+                .style("display", function(d){return d.height < 1 ? "none" : null})
+                .style("opacity", function(d){return d.height == 1 ? 0.2 : null})
             .selectAll("tspan")
             .data(d => d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(format(d.value)))
             .join("tspan")
@@ -131,7 +135,7 @@ svg {
                 .attr("x", 3)
                 .attr("y", (d, i, nodes) => `${(i === nodes.length - 1) * 0.3 + 1.1 + i * 0.9}em`);
 
-            return svg.node();
+            // return svg.node();
         });
         
         
