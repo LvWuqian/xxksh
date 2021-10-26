@@ -24,9 +24,9 @@ svg {
 <body>
     <!-- <svg width="2700" height="1500"></svg> -->
     <ol class="breadcrumb" style="margin-bottom: 0">
-        <li><a href="#">Home</a></li>
-        <li><a href="#">Library</a></li>
-        <li class="active">Data</li>
+        <!-- <li><a href="#">Home</a></li>
+        <li><a href="#">Library</a></li> -->
+        <li class="active">citylist</li>
     </ol>
     <svg class="basic"></svg>
     <svg class="specific" display=none></svg>
@@ -162,7 +162,10 @@ svg {
             var svgdelete = d3.select("svg.specific")
             svgdelete.selectAll("g").remove()
             svgdelete.selectAll("filter").remove()
-                            
+            
+            var oldelete = d3.select("ol.breadcrumb")
+            oldelete.selectAll("li").remove()
+
             var svgbasic = d3.select("svg.basic")
                                 .attr("display", "none");
 
@@ -175,21 +178,29 @@ svg {
 
             d3.json("data/newChina.json").then(function(data) {
                 var findRoot
+                var rootPathArray
                 var flag = false
                 var testRoot = d3.hierarchy(data)
                         .eachBefore(function(d){
                             if(flag == false && d.data.name == r.data.name){
                                 findRoot = d.copy();
+                                rootPathArray = d.ancestors();
                                 flag = true;
                             }
                         })
+                
+                // var ol = d3.select("ol.breadcrumb")
+                for(j = rootPathArray.length - 1; j >= 0; j--){
+                    d3.select("ol.breadcrumb")
+                    .append("li")
+                    .text(rootPathArray[j].data.name)
+                }
 
                 findRoot.sum(d => d.children ? 0 : 1)
                         .sort((a, b) => b.height - a.height || b.value - a.value)
                 specificTreemap(findRoot)
 
                 var shadow = uid("shadow");
-
 
                 var svgspecific = d3.select("svg.specific")
 
