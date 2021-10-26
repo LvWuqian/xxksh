@@ -13,14 +13,13 @@ svg {
   font: 10px sans-serif;
 } */
     g[transform]:hover rect{ 
-        fill:blue;
+        fill:gray;
     }
-    
+
     a {
         cursor:pointer;
     }
-
-
+    
     </style>
     <!-- <script src="https://code.jquery.com/jquery-1.7.2.min.js"></script>
     <script src='https://d3js.org/d3.v4.min.js'></script> -->
@@ -57,6 +56,14 @@ svg {
         Id.prototype.toString = function() {
             return "url(" + this.href + ")";
         };
+
+        function getJsonLength(jsonData){
+            var jsonLength = 0;
+            for(var item in jsonData){
+                jsonLength++;
+            }
+            return jsonLength;
+        }
     </script>
     <script type="text/javascript">
         var color = d3.scaleSequential([8, 0], d3.interpolateMagma)
@@ -66,7 +73,7 @@ svg {
 
         d3.select("svg.specific")
         .attr("viewBox", [0, 0, width, height])
-        .style("font", "10px sans-serif");
+        .style("font", "bold 10px STKaiti,sans-serif");
     
 
 
@@ -101,7 +108,7 @@ svg {
             console.log(root)
             const svg = d3.select("svg.basic")
                 .attr("viewBox", [0, 0, width, height])
-                .style("font", "10px sans-serif");
+                .style("font", "bold 10px STKaiti,sans-serif");
 
             const shadow = uid("shadow");
 
@@ -123,13 +130,15 @@ svg {
                 .attr("class", d => "height_" + d.height);
 
             node.append("title")
-                .text(d => `${d.ancestors().reverse().map(d => d.data.name).join("/")}\n${format(d.value)}`);
+                .text(d => `位置：${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：${format(d.value)}`);
 
             node.append("rect")
                 .attr("id", d => (d.nodeUid = uid("node")).id)
                 .attr("fill", d => color(d.height))
                 .attr("width", d => d.x1 - d.x0)
                 .attr("height", d => d.y1 - d.y0)
+                .attr("rx", 2)
+                .attr("ry", 2)
                 .style("opacity", function(d){return d.height < 2 ? 0.2 : 1});
 
             node.append("clipPath")
@@ -142,7 +151,14 @@ svg {
                 .style("display", function(d){return d.height < 1 ? "none" : null})
                 .style("opacity", function(d){return d.height == 1 ? 0.2 : null})
             .selectAll("tspan")
-            .data(d => d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(format(d.value)))
+            .data(function(d){
+                if(d.height > 1){
+                    return d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(getJsonLength(d.children) + "/" + d.value)
+                }
+                else{
+                    return d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(format(d.value))
+                }
+            })
             .join("tspan")
                 .attr("fill-opacity", (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
                 .text(d => d);
@@ -154,6 +170,9 @@ svg {
             node.filter(d => !d.children).selectAll("tspan")
                 .attr("x", 3)
                 .attr("y", (d, i, nodes) => `${(i === nodes.length - 1) * 0.3 + 1.1 + i * 0.9}em`);
+
+            node.filter(d => !d.children).selectAll("tspan[fill-opacity]")
+                .attr("fill-opacity", 0);
 
             node.filter(d => d.children || !d.children)
                 .attr("cursor", "pointer")
@@ -205,6 +224,7 @@ svg {
             d3.json("data/newChina.json").then(function(data) {
                 var findRoot
                 var rootPathArray
+                var titleStr = "位置："
                 var flag = false
 
                 var testRoot = d3.hierarchy(data)
@@ -224,6 +244,8 @@ svg {
                         .append("a")
                         .attr("onclick", "enlarge('" + rootPathArray[j].data.name + "')")
                         .text(rootPathArray[j].data.name)
+
+                        titleStr += rootPathArray[j].data.name + "-"
                     }
                     else{
                         d3.select("ol.breadcrumb")
@@ -255,15 +277,17 @@ svg {
                                     .data(d => d[1])
                                     .join("g")
                                         .attr("transform", d => `translate(${d.x0},${d.y0})`)
-                
+
                 newNode.append("title")
-                    .text(d => `${d.ancestors().reverse().map(d => d.data.name).join("/")}\n${format(d.value)}`);
+                    .text(d => titleStr + `${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：${format(d.value)}`);
 
                 newNode.append("rect")
                     .attr("id", d => (d.nodeUid = uid("node")).id)
                     .attr("fill", d => color(d.height))
                     .attr("width", d => d.x1 - d.x0)
-                    .attr("height", d => d.y1 - d.y0);
+                    .attr("height", d => d.y1 - d.y0)
+                    .attr("rx", 2)
+                    .attr("ry", 2);
 
                 newNode.append("clipPath")
                     .attr("id", d => (d.clipUid = uid("clip")).id)
@@ -273,7 +297,14 @@ svg {
                 newNode.append("text")
                     .attr("clip-path", d => d.clipUid)
                 .selectAll("tspan")
-                .data(d => d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(format(d.value)))
+                .data(function(d){
+                    if(d.height > 1){
+                        return d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(getJsonLength(d.children) + "/" + d.value)
+                    }
+                    else{
+                        return d.data.name.split(/(?=[A-Z][^A-Z])/g).concat(format(d.value))
+                    }
+                })
                 .join("tspan")
                     .attr("fill-opacity", (d, i, nodes) => i === nodes.length - 1 ? 0.7 : null)
                     .text(d => d);
@@ -285,6 +316,9 @@ svg {
                 newNode.filter(d => !d.children).selectAll("tspan")
                     .attr("x", 3)
                     .attr("y", (d, i, nodes) => `${(i === nodes.length - 1) * 0.3 + 1.1 + i * 0.9}em`);
+
+                newNode.filter(d => !d.children).selectAll("tspan[fill-opacity]")
+                    .attr("fill-opacity", 0);
 
                 newNode.filter(d => d.children || !d.children)
                     .attr("cursor", "pointer")
