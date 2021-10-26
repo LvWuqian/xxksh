@@ -13,7 +13,7 @@ svg {
   font: 10px sans-serif;
 } */
     g[transform]:hover rect{ 
-        fill:gray;
+        fill:#ccebc5;
     }
 
     a {
@@ -66,7 +66,8 @@ svg {
         }
     </script>
     <script type="text/javascript">
-        var color = d3.scaleSequential([8, 0], d3.interpolateMagma)
+        // var color = d3.scaleSequential([8, 0], d3.interpolateMagma)
+        var color = d3.schemeSet3
         var format = d3.format(",d")
         var height = 1060
         var width = 954
@@ -130,16 +131,16 @@ svg {
                 .attr("class", d => "height_" + d.height);
 
             node.append("title")
-                .text(d => `位置：${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：${format(d.value)}`);
+                .text(d => `位置：${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：`+ getJsonLength(d.children) + `\n总区域数：${format(d.value)}`);
 
             node.append("rect")
                 .attr("id", d => (d.nodeUid = uid("node")).id)
-                .attr("fill", d => color(d.height))
+                .attr("fill", d => color[d.height + 1])
                 .attr("width", d => d.x1 - d.x0)
                 .attr("height", d => d.y1 - d.y0)
                 .attr("rx", 2)
                 .attr("ry", 2)
-                .style("opacity", function(d){return d.height < 2 ? 0.2 : 1});
+                .style("opacity", function(d){return d.height < 2 ? 0.5 : 1});
 
             node.append("clipPath")
                 .attr("id", d => (d.clipUid = uid("clip")).id)
@@ -149,7 +150,7 @@ svg {
             node.append("text")
                 .attr("clip-path", d => d.clipUid)
                 .style("display", function(d){return d.height < 1 ? "none" : null})
-                .style("opacity", function(d){return d.height == 1 ? 0.2 : null})
+                .style("opacity", function(d){return d.height == 1 ? 0.5 : null})
             .selectAll("tspan")
             .data(function(d){
                 if(d.height > 1){
@@ -279,11 +280,11 @@ svg {
                                         .attr("transform", d => `translate(${d.x0},${d.y0})`)
 
                 newNode.append("title")
-                    .text(d => titleStr + `${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：${format(d.value)}`);
-
+                    .text(d => titleStr + `${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：`+ getJsonLength(d.children) + `\n总区域数量：${format(d.value)}`);
+                console.log(color[10])
                 newNode.append("rect")
                     .attr("id", d => (d.nodeUid = uid("node")).id)
-                    .attr("fill", d => color(d.height))
+                    .attr("fill", d => color[d.height + 1])
                     .attr("width", d => d.x1 - d.x0)
                     .attr("height", d => d.y1 - d.y0)
                     .attr("rx", 2)
@@ -417,6 +418,3 @@ svg {
 
 </body>
 </html>
-
-
-
