@@ -49,12 +49,16 @@ svg {
         };
     </script>
     <script type="text/javascript">
-
-    
         var color = d3.scaleSequential([8, 0], d3.interpolateMagma)
         var format = d3.format(",d")
         var height = 1060
         var width = 954
+
+        d3.select("svg.specific")
+        .attr("viewBox", [0, 0, width, height])
+        .style("font", "10px sans-serif");
+    
+
 
         // treemap = data => d3.treemap()
         //         .size([width, height])
@@ -150,6 +154,12 @@ svg {
         
         function enlarge(r){
             console.log(r)
+            var svgdelete = d3.select("svg.specific")
+            svgdelete.selectAll("g").remove()
+            svgdelete.selectAll("filter").remove()
+                            
+            var svgbasic = d3.select("svg.basic")
+                                .attr("display", "none");
 
             var specificTreemap = d3.treemap()
                         .size([width, height])
@@ -175,12 +185,9 @@ svg {
 
                 var shadow = uid("shadow");
 
-                var svgbasic = d3.select("svg.basic")
-                                .attr("display", "none");
 
                 var svgspecific = d3.select("svg.specific")
-                                .attr("viewBox", [0, 0, width, height])
-                                .style("font", "10px sans-serif");
+
                 svgspecific.append("filter")
                     .attr("id", shadow.id)
                 .append("feDropShadow")
@@ -229,6 +236,7 @@ svg {
 
                 newNode.filter(d => d.children || !d.children)
                     .attr("cursor", "pointer")
+                    .on("click", (event, d) => enlarge(d));
 
                 svgspecific.attr("display", "inline")
             })
