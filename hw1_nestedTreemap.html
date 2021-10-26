@@ -15,6 +15,11 @@ svg {
     g[transform]:hover rect{ 
         fill:blue;
     }
+    
+    a {
+        cursor:pointer;
+    }
+
 
     </style>
     <!-- <script src="https://code.jquery.com/jquery-1.7.2.min.js"></script>
@@ -166,6 +171,27 @@ svg {
             var oldelete = d3.select("ol.breadcrumb")
             oldelete.selectAll("li").remove()
 
+            var compareStr
+            if(typeof(r)=='string'){
+                compareStr = r
+            }
+            else{
+                compareStr = r.data.name
+            }
+            if(compareStr == "citylist"){
+                d3.select("svg.basic")
+                .attr("display", "inline");
+
+                d3.select("svg.specific")
+                .attr("display", "none");
+
+                d3.select("ol.breadcrumb")
+                .append("li")
+                .text("citylist")
+
+                return
+            }
+
             var svgbasic = d3.select("svg.basic")
                                 .attr("display", "none");
 
@@ -180,9 +206,10 @@ svg {
                 var findRoot
                 var rootPathArray
                 var flag = false
+
                 var testRoot = d3.hierarchy(data)
                         .eachBefore(function(d){
-                            if(flag == false && d.data.name == r.data.name){
+                            if(flag == false && d.data.name == compareStr){
                                 findRoot = d.copy();
                                 rootPathArray = d.ancestors();
                                 flag = true;
@@ -191,9 +218,18 @@ svg {
                 
                 // var ol = d3.select("ol.breadcrumb")
                 for(j = rootPathArray.length - 1; j >= 0; j--){
-                    d3.select("ol.breadcrumb")
-                    .append("li")
-                    .text(rootPathArray[j].data.name)
+                    if(j > 0){
+                        d3.select("ol.breadcrumb")
+                        .append("li")
+                        .append("a")
+                        .attr("onclick", "enlarge('" + rootPathArray[j].data.name + "')")
+                        .text(rootPathArray[j].data.name)
+                    }
+                    else{
+                        d3.select("ol.breadcrumb")
+                        .append("li")
+                        .text(rootPathArray[j].data.name)
+                    }
                 }
 
                 findRoot.sum(d => d.children ? 0 : 1)
