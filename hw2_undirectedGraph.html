@@ -5,11 +5,11 @@
     <style type="text/css">
         circle {
             cursor: pointer;
-            fill: blue;
+            fill: #AEDD81;
         }
 
         circle.selected {
-            fill: black;
+            fill: #EB7347;
         }
 
         line {
@@ -20,7 +20,7 @@
 
         line.selected {
             stroke-dasharray: none;
-            stroke: black;
+            stroke: #EB7347;
         }
     
     </style>
@@ -87,9 +87,6 @@
                 }
             }
         }
-        console.log(g)
-        console.log(p)
-
 
         nodes = d3.values(nodes);
 
@@ -97,7 +94,7 @@
         console.log(edges)
 
         var width = window.innerWidth
-        var height = 2060;
+        var height = 1600;
 
         var force = d3.layout.force()
                     .nodes(nodes)                                                       //指定节点数组
@@ -146,7 +143,7 @@
                             // })
                             .on('mouseover', function(d) {
                                 svg.selectAll("line." + "p_" + d.name)
-                                    .style("stroke", "black")
+                                    .style("stroke", "#26A65B")
                             })
                             .on('mouseout', function(d) {
                                 // d3.selectAll('.divergence').remove();
