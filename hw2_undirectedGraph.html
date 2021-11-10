@@ -120,8 +120,6 @@
                             .attr("class", function(d){
                                 return "p_" + d.source.name + " " + "p_" + d.target.name
                             });
-                            // .style("stroke", "#ccc")
-                            // .style("stroke-width", 2);
 
         //设置颜色色组
         var color = d3.scale.category20();
@@ -138,15 +136,11 @@
                                 return "i_" + d.name
                             })
                             .attr("r",20)
-                            // .style("fill", function(d,i){
-                            //     return color(0);
-                            // })
                             .on('mouseover', function(d) {
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", "#26A65B")
                             })
                             .on('mouseout', function(d) {
-                                // d3.selectAll('.divergence').remove();
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", null)
                             })
