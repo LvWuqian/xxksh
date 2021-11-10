@@ -10,6 +10,7 @@
         line {
             stroke: #ccc;
             stroke-width: 2;
+            /* stroke-dasharray: 5,5; */
         }
     
     </style>
@@ -19,18 +20,18 @@
     <script src='lib/d3.v3.min.js'></script>      
     <script>
         var edges = [
-            {source: "0", target: "1", distance: 40},
-            {source: "1", target: "2", distance: 60},
-            {source: "2", target: "3", distance: 75},
-            {source: "3", target: "4", distance: 90},
-            {source: "4", target: "5", distance: 200},
-            {source: "5", target: "6", distance: 100},
-            {source: "2", target: "5", distance: 160},
-            {source: "7", target: "8", distance: 80},
-            {source: "8", target: "0", distance: 80},
-            {source: "7", target: "1", distance: 80},
+            {source: "0", target: "1", dis: 40},
+            {source: "1", target: "2", dis: 60},
+            {source: "2", target: "3", dis: 75},
+            {source: "3", target: "4", dis: 90},
+            {source: "4", target: "5", dis: 200},
+            {source: "5", target: "6", dis: 100},
+            {source: "2", target: "5", dis: 160},
+            {source: "7", target: "8", dis: 80},
+            {source: "8", target: "0", dis: 80},
+            {source: "7", target: "1", dis: 80},
         ];
-        
+
         var nodes = {};
 
         for(var i = 0; i < edges.length; i++){
@@ -41,6 +42,44 @@
                 nodes[edges[i].target] = {name: edges[i].target}
             edges[i].target = nodes[edges[i].target]
         }
+
+        //Floyd算法计算最短路径
+
+        //1.初始化map
+        var g = {}
+        var p = {}
+        for(var key in nodes){
+            var gtmp = new Object()
+            for(var inKey in nodes){
+                gtmp[nodes[inKey]['name']] = Number.MAX_SAFE_INTEGER
+            }
+            g[nodes[key]['name']] = gtmp
+            var ptmp = new Object()
+            for(var inKey in nodes){
+                ptmp[nodes[inKey]['name']] = nodes[inKey]['name']
+            }
+            p[nodes[key]['name']] = ptmp
+            g[nodes[key]['name']][nodes[key]['name']] = 0
+        }
+        for(var i = 0; i < edges.length; i++){
+            g[edges[i].source['name']][edges[i].target['name']] = edges[i].dis
+            g[edges[i].target['name']][edges[i].source['name']] = edges[i].dis
+        }
+        //2.开始计算
+        for(var kkey in g){
+            for(var ikey in g){
+                for(var jkey in g){
+                    if (ikey != jkey && g[ikey][jkey] > (g[ikey][kkey] + g[kkey][jkey])){
+                        //将权值和更新，路径也变为中转点
+                        g[ikey][jkey] = g[ikey][kkey] + g[kkey][jkey];
+                        p[ikey][jkey] = p[ikey][kkey];
+                    }
+                }
+            }
+        }
+        console.log(g)
+        console.log(p)
+
 
         nodes = d3.values(nodes);
 
@@ -54,7 +93,7 @@
                     .nodes(nodes)                                                       //指定节点数组
                     .links(edges)                                                       //指定连线数组
                     .size([width, height])                                              //指定范围
-                    .linkDistance(function(d) { return  d.distance; })                  //指定连线长度
+                    .linkDistance(function(d) { return  d.dis; })                  //指定连线长度
                     .charge(-2000)                                                      //相互之间的作用力
                     .start();                                                           //开始作用
         
@@ -123,7 +162,7 @@
                                 .attr("dx", 5)
                                 .attr("dy", 2)
                                 .text(function(d){
-                                    return d.distance;
+                                    return d.dis;
                                 });
                             
         force.on("tick", function(){
@@ -150,6 +189,7 @@
                 .attr("y", function(d){ return (d.source.y + d.target.y) / 2; });
         });
         
+
     </script>
 
 </body>
