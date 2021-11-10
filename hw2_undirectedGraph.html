@@ -4,13 +4,23 @@
     <title>图可视化与交互</title>
     <style type="text/css">
         circle {
-            cursor:pointer;
+            cursor: pointer;
+            fill: blue;
+        }
+
+        circle.selected {
+            fill: black;
         }
 
         line {
             stroke: #ccc;
             stroke-width: 2;
-            /* stroke-dasharray: 5,5; */
+            stroke-dasharray: 5,5;
+        }
+
+        line.selected {
+            stroke-dasharray: none;
+            stroke: black;
         }
     
     </style>
@@ -107,6 +117,9 @@
                             .data(edges)
                             .enter()
                             .append("line")
+                            .attr("id", function(d){
+                                return "p_" + d.source.name + "_" + d.target.name
+                            })
                             .attr("class", function(d){
                                 return "p_" + d.source.name + " " + "p_" + d.target.name
                             });
@@ -115,6 +128,9 @@
 
         //设置颜色色组
         var color = d3.scale.category20();
+
+        var count = 0
+        var selectedList = []
 
         //将节点添加到Svg中
         var nodesInSvg = svg.selectAll("circle")
@@ -125,9 +141,9 @@
                                 return "i_" + d.name
                             })
                             .attr("r",20)
-                            .style("fill", function(d,i){
-                                return color(0);
-                            })
+                            // .style("fill", function(d,i){
+                            //     return color(0);
+                            // })
                             .on('mouseover', function(d) {
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", "black")
@@ -138,14 +154,41 @@
                                     .style("stroke", null)
                             })
                             .on('click', function(d) {
-                                
                                 var click_circle = svg.selectAll("circle#" + "i_" + d.name)
-                                console.log(click_circle.style("fill"))
-                                if(click_circle.style("fill") == "rgb(0, 0, 0)"){
-                                    click_circle.style("fill", color[0])
+                                if(click_circle.attr("class") != null && isStrInClass("selected", click_circle.attr("class"))){
+                                    click_circle.classed("selected", false)
+                                    var deletedIndex = selectedList.indexOf(d.name)
+                                    selectedList.splice(deletedIndex, 1)　
+                                    count -= 1
+                                    svg.selectAll("line.selected")
+                                            .classed("selected", false)
                                 }
                                 else{
-                                    click_circle.style("fill", "black")
+                                    count += 1
+                                    if(count == 2){
+                                        //绘制路径
+                                        console.log("绘制路径")
+                                        selectedList.push(d.name)
+                                        var path = calcPath(selectedList[0], selectedList[1])
+                                        for(var i = 0; i < path.length - 1; i++){
+                                            svg.select("line#p_" + path[i] + "_" + path[i+1])
+                                                .classed("selected", true)
+                                            svg.select("line#p_" + path[i+1] + "_" + path[i])
+                                                .classed("selected", true)
+                                        }
+                                    }
+                                    else if(count > 2){
+                                        //删除绘制的路径并清空selectedList
+                                        console.log("删除绘制的路径")
+                                        svg.selectAll(".selected")
+                                            .classed("selected", false)
+                                        count = 1
+                                        selectedList = [d.name]
+                                    }
+                                    else{
+                                        selectedList.push(d.name)
+                                    }
+                                    click_circle.classed("selected", true)
                                 }
                             })
                             .call(force.drag());         
@@ -198,8 +241,21 @@
                 .attr("x", function(d){ return (d.source.x + d.target.x) / 2; })
                 .attr("y", function(d){ return (d.source.y + d.target.y) / 2; });
         });
-        
 
+        function isStrInClass(str, classStr) {
+            let classArray = classStr.split(' ')
+            return classArray.includes(str)
+        }
+
+        function calcPath(pa, pb) {
+            var pathArray = [pa]
+            tmp = pa
+            while(tmp != pb){
+                pathArray.push(p[tmp][pb])
+                tmp = p[tmp][pb]
+            }
+            return pathArray
+        }
     </script>
 
 </body>
