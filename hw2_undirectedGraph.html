@@ -122,14 +122,13 @@
                             .enter()
                             .append("circle")
                             .attr("id", function(d){
-                                return d.name
+                                return "i_" + d.name
                             })
                             .attr("r",20)
                             .style("fill", function(d,i){
-                                return color(i);
+                                return color(0);
                             })
                             .on('mouseover', function(d) {
-                                console.log("mouseover" + d.name)
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", "black")
                             })
@@ -137,6 +136,17 @@
                                 // d3.selectAll('.divergence').remove();
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", null)
+                            })
+                            .on('click', function(d) {
+                                
+                                var click_circle = svg.selectAll("circle#" + "i_" + d.name)
+                                console.log(click_circle.style("fill"))
+                                if(click_circle.style("fill") == "rgb(0, 0, 0)"){
+                                    click_circle.style("fill", color[0])
+                                }
+                                else{
+                                    click_circle.style("fill", "black")
+                                }
                             })
                             .call(force.drag());         
 
