@@ -58,7 +58,7 @@
                             .enter()
                             .append("line")
                             .style("stroke", "#ccc")
-                            .style("stroke-width", 1);
+                            .style("stroke-width", 2);
 
         //设置颜色色组
         var color = d3.scale.category20();
@@ -75,17 +75,29 @@
                             .call(force.drag());         
 
         //将与节点相关的文字添加到Svg中
-        var textsInSvg = svg.selectAll("text#nodes")
+        var nodeTextsInSvg = svg.selectAll("text.node")
                             .data(nodes)
                             .enter()
                             .append("text")
                             .style("fill", "black")
-                            .attr('id', 'nodes')
+                            .attr('class', 'node')
                             .attr("dx", 20)
                             .attr("dy", 8)
                             .text(function(d){
                                 return d.name;
                             });
+
+        //将与边相关的文字添加到Svg中
+        var edgeTextsInSvg = svg.selectAll("text.edge")
+                                .data(edges)
+                                .enter().append("text")
+                                .style("fill", "#ccc")
+                                .attr('class', 'edge')
+                                .attr("dx", 5)
+                                .attr("dy", 2)
+                                .text(function(d){
+                                    return d.distance;
+                                });
                             
         force.on("tick", function(){
             //刷新边
@@ -101,9 +113,14 @@
                 .attr("cy",function(d){ return d.y; });
 
             //更新节点文字
-            textsInSvg
+            nodeTextsInSvg
                 .attr("x", function(d){ return d.x; })
                 .attr("y", function(d){ return d.y; });
+
+            //更新边文字    
+            edgeTextsInSvg
+                .attr("x", function(d){ return (d.source.x + d.target.x) / 2; })
+                .attr("y", function(d){ return (d.source.y + d.target.y) / 2; });
         });
         
     </script>
