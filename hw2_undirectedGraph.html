@@ -29,6 +29,7 @@
     <svg></svg>
     <script src='lib/d3.v3.min.js'></script>      
     <script>
+        //设置起点到终点的边dis代表他们之间的距离
         var edges = [
             {source: "A", target: "B", dis: 40},
             {source: "B", target: "C", dis: 60},
@@ -43,9 +44,10 @@
         ];
 
         var nodes = {};
-
+        
+        //根据边的关系得到节点的集合并将边的source和target指向节点
         for(var i = 0; i < edges.length; i++){
-            if(nodes[edges[i].source] == null)
+            if(nodes[edges[i].source] == null) //如果nodes中没有这个点则创建
                 nodes[edges[i].source] = {name: edges[i].source}
             edges[i].source = nodes[edges[i].source]
             if(nodes[edges[i].target] == null)
@@ -56,22 +58,22 @@
         //Floyd算法计算最短路径
 
         //1.初始化map
-        var g = {}
-        var p = {}
+        var g = {} //记录两点最短需要的距离
+        var p = {} //记录两点之间最短路径的前一个节点
         for(var key in nodes){
             var gtmp = new Object()
             for(var inKey in nodes){
-                gtmp[nodes[inKey]['name']] = Number.MAX_SAFE_INTEGER
+                gtmp[nodes[inKey]['name']] = Number.MAX_SAFE_INTEGER //将距离初始化为无穷即最大值
             }
             g[nodes[key]['name']] = gtmp
             var ptmp = new Object()
             for(var inKey in nodes){
-                ptmp[nodes[inKey]['name']] = nodes[inKey]['name']
+                ptmp[nodes[inKey]['name']] = nodes[inKey]['name'] //将最短路径前一个节点初始化为自己
             }
             p[nodes[key]['name']] = ptmp
-            g[nodes[key]['name']][nodes[key]['name']] = 0
+            g[nodes[key]['name']][nodes[key]['name']] = 0 //节点到自己的距离为0
         }
-        for(var i = 0; i < edges.length; i++){
+        for(var i = 0; i < edges.length; i++){ //将邻边的距离更新到map中
             g[edges[i].source['name']][edges[i].target['name']] = edges[i].dis
             g[edges[i].target['name']][edges[i].source['name']] = edges[i].dis
         }
@@ -96,11 +98,12 @@
         var width = window.innerWidth
         var height = 1600;
 
+        //根据边和节点创建力导向图
         var force = d3.layout.force()
                     .nodes(nodes)                                                       //指定节点数组
                     .links(edges)                                                       //指定连线数组
                     .size([width, height])                                              //指定范围
-                    .linkDistance(function(d) { return  d.dis; })                  //指定连线长度
+                    .linkDistance(function(d) { return  d.dis; })                       //指定连线长度这里固定为距离
                     .charge(-2000)                                                      //相互之间的作用力
                     .start();                                                           //开始作用
         
@@ -114,44 +117,42 @@
                             .data(edges)
                             .enter()
                             .append("line")
-                            .attr("id", function(d){
+                            .attr("id", function(d){ //设置边的id记录起始和终止的节点名
                                 return "p_" + d.source.name + "_" + d.target.name
                             })
-                            .attr("class", function(d){
+                            .attr("class", function(d){ //设置边的class记录所关联的节点
                                 return "p_" + d.source.name + " " + "p_" + d.target.name
                             });
 
-        //设置颜色色组
-        var color = d3.scale.category20();
-
-        var count = 0
-        var selectedList = []
+        var count = 0 //记录当前选中的节点数量
+        var selectedList = [] //记录当前选中的节点
 
         //将节点添加到Svg中
         var nodesInSvg = svg.selectAll("circle")
                             .data(nodes)
                             .enter()
                             .append("circle")
-                            .attr("id", function(d){
+                            .attr("id", function(d){ //设置节点的id记录节点名
                                 return "i_" + d.name
                             })
                             .attr("r",20)
-                            .on('mouseover', function(d) {
+                            .on('mouseover', function(d) { //当鼠标悬停的时候高亮与节点相连的边
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", "#26A65B")
                             })
-                            .on('mouseout', function(d) {
+                            .on('mouseout', function(d) { //当鼠标离开的时候恢复与节点相连的边
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", null)
                             })
-                            .on('click', function(d) {
-                                var click_circle = svg.selectAll("circle#" + "i_" + d.name)
+                            .on('click', function(d) { //设置节点点击事件
+                                var click_circle = svg.selectAll("circle#" + "i_" + d.name) //选中当前点击的节点
+                                //如果该节点已经被选中过则取消选中
                                 if(click_circle.attr("class") != null && isStrInClass("selected", click_circle.attr("class"))){
-                                    click_circle.classed("selected", false)
+                                    click_circle.classed("selected", false) //删除selected这个class
                                     var deletedIndex = selectedList.indexOf(d.name)
-                                    selectedList.splice(deletedIndex, 1)　
+                                    selectedList.splice(deletedIndex, 1)　 //从selectedList中删除该节点
                                     count -= 1
-                                    svg.selectAll("line.selected")
+                                    svg.selectAll("line.selected") //取消路径边的高亮
                                             .classed("selected", false)
                                 }
                                 else{
@@ -160,15 +161,15 @@
                                         //绘制路径
                                         console.log("绘制路径")
                                         selectedList.push(d.name)
-                                        var path = calcPath(selectedList[0], selectedList[1])
-                                        for(var i = 0; i < path.length - 1; i++){
+                                        var path = calcPath(selectedList[0], selectedList[1]) //计算最短路径并返回字符串数组
+                                        for(var i = 0; i < path.length - 1; i++){ //根据返回的路径高亮路径的边
                                             svg.select("line#p_" + path[i] + "_" + path[i+1])
                                                 .classed("selected", true)
                                             svg.select("line#p_" + path[i+1] + "_" + path[i])
                                                 .classed("selected", true)
                                         }
                                     }
-                                    else if(count > 2){
+                                    else if(count > 2){ //同时选中了三个点则取消前两个点和路径的高亮
                                         //删除绘制的路径并清空selectedList
                                         console.log("删除绘制的路径")
                                         svg.selectAll(".selected")
@@ -182,7 +183,7 @@
                                     click_circle.classed("selected", true)
                                 }
                             })
-                            .call(force.drag());         
+                            .call(force.drag()); //添加拖拽
 
         //将与节点相关的文字添加到Svg中
         var nodeTextsInSvg = svg.selectAll("text.node")
@@ -191,7 +192,7 @@
                             .append("text")
                             .style("fill", "black")
                             .attr('class', 'node')
-                            .attr("dx", 20)
+                            .attr("dx", 20) //偏移
                             .attr("dy", 8)
                             .text(function(d){
                                 return d.name;
@@ -233,12 +234,12 @@
                 .attr("y", function(d){ return (d.source.y + d.target.y) / 2; });
         });
 
-        function isStrInClass(str, classStr) {
+        function isStrInClass(str, classStr) { //判断字符串是否在字符串数组中
             let classArray = classStr.split(' ')
             return classArray.includes(str)
         }
 
-        function calcPath(pa, pb) {
+        function calcPath(pa, pb) { //计算两个节点的最短路径经过的节点数组
             var pathArray = [pa]
             tmp = pa
             while(tmp != pb){
