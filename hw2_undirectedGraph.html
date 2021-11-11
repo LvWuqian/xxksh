@@ -139,10 +139,14 @@
                             .on('mouseover', function(d) { //当鼠标悬停的时候高亮与节点相连的边
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", "#26A65B")
+                                svg.selectAll("circle#" + "i_" + d.name)
+                                    .style("fill", "#D24D57")
                             })
                             .on('mouseout', function(d) { //当鼠标离开的时候恢复与节点相连的边
                                 svg.selectAll("line." + "p_" + d.name)
                                     .style("stroke", null)
+                                svg.selectAll("circle#" + "i_" + d.name)
+                                    .style("fill", null)
                             })
                             .on('click', function(d) { //设置节点点击事件
                                 var click_circle = svg.selectAll("circle#" + "i_" + d.name) //选中当前点击的节点
