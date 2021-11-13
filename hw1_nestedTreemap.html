@@ -5,6 +5,7 @@
     <title>Treemap可视化与交互</title>
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
+        /* 鼠标悬停高亮 */
         g[transform]:hover rect{ 
             fill:#ccebc5;
         }
@@ -17,6 +18,7 @@
 </head>
 
 <body>
+    <!-- 使用bootstrap绘制导航栏 -->
     <ol class="breadcrumb" style="margin-bottom: 0">
         <li class="active">citylist</li>
     </ol>
@@ -26,6 +28,7 @@
     <script src="lib/d3.v6.min.js"></script>
     <script src="lib/d3-array.v3.min.js"></script>
     <script type="text/javascript">
+        // 为元素生成不重复的ID
         var count = 0;
 
         function uid(name) {
@@ -41,6 +44,7 @@
             return "url(" + this.href + ")";
         };
 
+        // 获取JSON数据长度
         function getJsonLength(jsonData){
             var jsonLength = 0;
             for(var item in jsonData){
@@ -50,17 +54,20 @@
         }
     </script>
     <script type="text/javascript">
+        // 设置颜色集合
         var color = d3.schemeSet3
         var format = d3.format(",d")
         var height = 1060
         var width = 954
 
+        // 选中展示详情页面的svg设置viewBox和字体
         d3.select("svg.specific")
         .attr("viewBox", [0, 0, width, height])
         .style("font", "bold 10px STKaiti,sans-serif");
 
+        // 加载JSON数据
         d3.json("data/newChina.json").then(function(data) {
-            
+            // 设置Treemap的属性
             var treemap = d3.treemap()
                         .size([width, height])
                         .paddingOuter(3)
@@ -68,13 +75,16 @@
                         .paddingInner(1)
                         .round(true)
 
+            // 将data生成一棵树并遍历树设置value
             var root = d3.hierarchy(data)
                         .eachBefore(function(d) { d.value = 1; })
                         .sum(d => d.children ? 0 : 1)
                         .sort((a, b) => b.height - a.height || b.value - a.value)
 
+            // 将树数据生成Treemap
             treemap(root)
 
+            // 选中展示主页面的svg设置viewBox和字体
             const svg = d3.select("svg.basic")
                 .attr("viewBox", [0, 0, width, height])
                 .style("font", "bold 10px STKaiti,sans-serif");
@@ -88,8 +98,9 @@
                 .attr("dx", 0)
                 .attr("stdDeviation", 3);
 
+            // 根据data中的数据新建g元素
             const node = svg.selectAll("g")
-            .data(d3.group(root, d => d.height))
+            .data(d3.group(root, d => d.height)) //根据高度分级
             .join("g")
                 .attr("filter", shadow)
             .selectAll("g")
@@ -98,12 +109,14 @@
                 .attr("transform", d => `translate(${d.x0},${d.y0})`)
                 .attr("class", d => "height_" + d.height);
 
+            // 添加title显示块的相关信息
             node.append("title")
                 .text(d => `位置：${d.ancestors().reverse().map(d => d.data.name).join("-")}\n下级区域数量：`+ getJsonLength(d.children) + `\n总区域数：${format(d.value)}`);
 
+            // 添加rect到元素中
             node.append("rect")
                 .attr("id", d => (d.nodeUid = uid("node")).id)
-                .attr("fill", d => color[d.height + 1])
+                .attr("fill", d => color[d.height + 1]) // 根据不同的高度设置不同颜色
                 .attr("width", d => d.x1 - d.x0)
                 .attr("height", d => d.y1 - d.y0)
                 .attr("rx", 2)
@@ -115,6 +128,7 @@
             .append("use")
                 .attr("xlink:href", d => d.nodeUid.href);
 
+            // 添加text文本
             node.append("text")
                 .attr("clip-path", d => d.clipUid)
                 .style("display", function(d){return d.height < 1 ? "none" : null})
@@ -143,16 +157,20 @@
             node.filter(d => !d.children).selectAll("tspan[fill-opacity]")
                 .attr("fill-opacity", 0);
 
+            // 添加cursor属性和click事件
             node.filter(d => d.children || !d.children)
                 .attr("cursor", "pointer")
                 .on("click", (event, d) => enlarge(d));
         });
-        
+
+        // 缩放触发函数enlarge()
         function enlarge(r){
+            // 清空详情svg
             var svgdelete = d3.select("svg.specific")
             svgdelete.selectAll("g").remove()
             svgdelete.selectAll("filter").remove()
             
+            // 清空ol
             var oldelete = d3.select("ol.breadcrumb")
             oldelete.selectAll("li").remove()
 
@@ -163,6 +181,8 @@
             else{
                 compareStr = r.data.name
             }
+
+            // 如果点击的是citylist则显示主页面
             if(compareStr == "citylist"){
                 d3.select("svg.basic")
                 .attr("display", "inline");
@@ -177,9 +197,11 @@
                 return
             }
 
+            // 使主页面不显示
             var svgbasic = d3.select("svg.basic")
                                 .attr("display", "none");
 
+            //创建详情Treemap函数
             var specificTreemap = d3.treemap()
                         .size([width, height])
                         .paddingOuter(3)
@@ -187,9 +209,10 @@
                         .paddingInner(1)
                         .round(true)
 
+            // 读取数据
             d3.json("data/newChina.json").then(function(data) {
-                var findRoot
-                var rootPathArray
+                var findRoot // 找到节点
+                var rootPathArray // 节点路径数组
                 var titleStr = "位置："
                 var flag = false
 
@@ -201,7 +224,8 @@
                                 flag = true;
                             }
                         })
-
+                
+                // 设置更新导航栏
                 for(j = rootPathArray.length - 1; j >= 0; j--){
                     if(j > 0){
                         d3.select("ol.breadcrumb")
@@ -221,6 +245,8 @@
 
                 findRoot.sum(d => d.children ? 0 : 1)
                         .sort((a, b) => b.height - a.height || b.value - a.value)
+                
+                // 以新节点为root计算Treemap
                 specificTreemap(findRoot)
 
                 var shadow = uid("shadow");
